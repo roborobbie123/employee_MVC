@@ -23,13 +23,13 @@ public class SecurityConfig {
         UserDetails mary = User.builder()
                 .username("mary")
                 .password("{noop}mary")
-                .roles("EMPLOYEE, MANAGER")
+                .roles("EMPLOYEE", "MANAGER")
                 .build();
 
         UserDetails susan = User.builder()
                 .username("susan")
                 .password("{noop}susan")
-                .roles("EMPLOYEE, MANAGER, ADMIN")
+                .roles("EMPLOYEE", "MANAGER", "ADMIN")
                 .build();
 
         return new InMemoryUserDetailsManager(john, mary, susan);
@@ -39,7 +39,12 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
         http.authorizeHttpRequests(configurer ->
-                configurer.anyRequest().authenticated()
+                configurer
+                        .requestMatchers("/employees/showForm").hasRole("MANAGER")
+                        .requestMatchers("/employees/save").hasRole("MANAGER")
+                        .requestMatchers("/employees/showFormForUpdate**").hasRole("MANAGER")
+                        .requestMatchers("/employees/delete**").hasRole("ADMIN")
+                        .anyRequest().authenticated()
         )
                 .formLogin(form ->
                         form
