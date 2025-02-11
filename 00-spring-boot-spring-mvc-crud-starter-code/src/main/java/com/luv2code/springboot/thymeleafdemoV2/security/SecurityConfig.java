@@ -6,34 +6,30 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
+import org.springframework.security.provisioning.JdbcUserDetailsManager;
+import org.springframework.security.provisioning.UserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
+
+import javax.sql.DataSource;
 
 @Configuration
 public class SecurityConfig {
 
+    // add support for JDBC, very simple code
     @Bean
-    public InMemoryUserDetailsManager inMemoryUserDetailsManager() {
+    public UserDetailsManager userDetailsManager(DataSource dataSource) {
 
-        UserDetails john = User.builder()
-                .username("john")
-                .password("{noop}john")
-                .roles("EMPLOYEE")
-                .build();
+        JdbcUserDetailsManager jdbcUserDetailsManager = new JdbcUserDetailsManager(dataSource);
 
-        UserDetails mary = User.builder()
-                .username("mary")
-                .password("{noop}mary")
-                .roles("EMPLOYEE", "MANAGER")
-                .build();
+        // find user by username
+        jdbcUserDetailsManager.setUsersByUsernameQuery("select user_id, pw, active from members where user_id=?");
 
-        UserDetails susan = User.builder()
-                .username("susan")
-                .password("{noop}susan")
-                .roles("EMPLOYEE", "MANAGER", "ADMIN")
-                .build();
+        // find roles by username
+        jdbcUserDetailsManager.setAuthoritiesByUsernameQuery("select user_id, role from roles where user_id=?");
 
-        return new InMemoryUserDetailsManager(john, mary, susan);
+        return jdbcUserDetailsManager;
     }
+
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -58,7 +54,32 @@ public class SecurityConfig {
 
         return http.build();
     }
-
-
-
 }
+
+
+/*
+    @Bean
+    public InMemoryUserDetailsManager inMemoryUserDetailsManager() {
+
+        UserDetails john = User.builder()
+                .username("john")
+                .password("{noop}john")
+                .roles("EMPLOYEE")
+                .build();
+
+        UserDetails mary = User.builder()
+                .username("mary")
+                .password("{noop}mary")
+                .roles("EMPLOYEE", "MANAGER")
+                .build();
+
+        UserDetails susan = User.builder()
+                .username("susan")
+                .password("{noop}susan")
+                .roles("EMPLOYEE", "MANAGER", "ADMIN")
+                .build();
+
+        return new InMemoryUserDetailsManager(john, mary, susan);
+    }
+
+     */
