@@ -14,7 +14,9 @@
       <p>User: <span sec:authentication="principal.username"></span></p>
       <p>Role(s): <span sec:authentication="principal.authorities"></span></p>
       <hr>
-      <a th:href="@{/employees/showFormForAdd}" class="btn btn-primary mb-3">Add Employee</a>
+      <div sec:authorize="hasRole('MANAGER')">
+        <a th:href="@{/employees/showFormForAdd}" class="btn btn-primary mb-3">Add Employee</a>
+      </div>
       <table class="table table-bordered table-striped">
         <thead class="table-dark">
           <tr>
@@ -29,10 +31,18 @@
             <td th:text="${employee.firstName}"/>
             <td th:text="${employee.lastName}"/>
             <td th:text="${employee.email}"/>
+
             <td>
-              <a class="btn btn-success" th:href="@{/employees/showFormForUpdate(employeeId=${employee.id})}">Update</a>
-              <a class="btn btn-danger" th:href="@{/employees/delete(employeeId=${employee.id})}" onclick="if(!(confirm('Are you sure you want to delete this employee?'))) return false">Delete</a>
+              <div class="d-flex justify-content-start gap-3">
+                <div sec:authorize="hasRole('MANAGER')">
+                  <a class="btn btn-success" th:href="@{/employees/showFormForUpdate(employeeId=${employee.id})}">Update</a>
+                </div>
+                <div sec:authorize="hasRole('ADMIN')">
+                  <a class="btn btn-danger" th:href="@{/employees/delete(employeeId=${employee.id})}" onclick="if(!(confirm('Are you sure you want to delete this employee?'))) return false">Delete</a>
+                </div>
+              </div>
             </td>
+
           </tr>
         </tbody>
       </table>
